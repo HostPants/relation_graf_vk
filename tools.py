@@ -14,16 +14,35 @@ def get_items(json_object):
     else:
         return None
 
-def users_search_on_age(params):
-    users = []
-    for age in range(10, 20):
-        res = vk_request('users.search', f'age_from={age}&age_to={age + 1}&{params}&count=1000')
+def clear_users(users,ids):
+    c_users = []
+    for user in users:
+        id = user['id']
+        if id not in ids:
+            c_users.append(user)
+
+    return c_users;
+
+def transform_name(name):
+    return name.replace("'","''")
+
+def download_data_from_vk():
+    ids = set();
+    for age in range(10, 21):
+        res = vk_request('users.search', f'age_from={age}&age_to={age + 1}&university=1088&count=1000')
         time.sleep(1 / 3)
-        # if res['response']['count'] > 1000:
+
+        # if res['response']['count'] > e:
         #     users += users_search_on_mouth(age, params)
         # else:
-        users += get_items(res)
-    return users
+        users = get_items(res)
+        users = clear_users(users,ids)
+        ids.update(write_users_to_db(users))
+        print('write to db next users: ',users)
+        friends = get_friends(users)
+        write_friends_to_db(friends)
+        print('write to db next friends: ',friends)
+
 
 def users_search_on_mouth(age, params):
     users = []
@@ -70,15 +89,15 @@ def write_users_to_db(users):
         first_name = user['first_name']
         last_name = user['last_name']
         if id not in ids:
-            values += f" ('{id}', '{first_name}', '{last_name}'),"
+            values += f" ('{id}', '{transform_name(first_name)}', '{transform_name(last_name)}'),"
             ids.add(id)
-            if len(ids) % 1000 == 0:
+            if len(ids) % 1000 == 0 or len(ids) == len(users):
                 cursor.execute('insert into users ' + values[:-1])
                 values='values'
-    cursor.execute('insert into users ' + values[:-1])
     conn.commit()
     cursor.close()
     conn.close()
+    return ids;
 
 
 
@@ -86,17 +105,17 @@ def write_friends_to_db(friends):
     conn = get_coonnect()
     cursor = conn.cursor()
     values = 'values'
-    id=0;
     for user_id,friends_ids in friends.items():
-        count =0;
+        if friends_ids is None:
+            continue
+        else:
+            count =0
         for friend_id in set(friends_ids):
-            values += f" ('{id}', '{friend_id}'),"
+            values += f" ( {user_id}, {friend_id}),"
             count+=1;
             if count % 1000 == 0 or len(friends_ids) == count:
-                cursor.execute(f"insert into friends(interval_id,friends_id){values[:-1]}")
-                cursor.execute(f"insert into users_together_friends (user_id,friends_ids,amount) values({user_id},{id},{len(friends_ids)})")
+                cursor.execute(f"insert into friends(user_id,friend_id){values[:-1]}")
                 values = 'values'
-            id += 1;
     conn.commit()
     cursor.close()
     conn.close()

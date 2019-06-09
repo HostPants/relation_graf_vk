@@ -45,11 +45,5 @@ class Test(unittest.TestCase):
         conn.close()
 
 
-
-    # def test_user_search_on_age(self):
-    #     res = tools.vk_request('users.search', 'university=1088')
-    #     users = tools.users_search_on_age('university=1088')
-    #     self.assertEqual(res['response']['count'],len(users))
-
 if __name__ == '__main__':
     unittest.main()

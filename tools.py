@@ -1,7 +1,11 @@
 import urllib.request, json
 import time
-from my_token import token
+import networkx as nx
 import psycopg2
+from datetime import datetime
+import matplotlib.pyplot as plt
+from my_token import token
+
 
 def vk_request(method,params):
     url = f"https://api.vk.com/method/{method}?{params}&access_token={token}&v=5.92"
@@ -109,7 +113,7 @@ def write_friends_to_db(friends):
         if friends_ids is None:
             continue
         else:
-            count =0
+            count = 0
         for friend_id in set(friends_ids):
             values += f" ( {user_id}, {friend_id}),"
             count+=1;
@@ -119,3 +123,25 @@ def write_friends_to_db(friends):
     conn.commit()
     cursor.close()
     conn.close()
+
+def get_dict_for_graph():
+    conn = get_coonnect()
+    cur = conn.cursor()
+    cur.execute(f'select user_id, friend_id from friends join users on users.id = friends.friend_id')
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    users = {}
+    for row in rows:
+        user_id = row[0]
+        if  user_id not in users:
+            users.update({user_id:[item[1] for item in rows if user_id == item[0]]})
+    return users
+
+def get_graph(users):
+    return nx.from_dict_of_lists(users)
+
+def drow_graph(graph):
+    plt.figure(figsize=(10,10), dpi=200 )
+    nx.draw(graph, node_size=5)
+    plt.savefig("%s graph.png" % datetime.now().strftime('%H:%M:%S %d-%m-%Y'))

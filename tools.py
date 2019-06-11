@@ -135,7 +135,7 @@ def get_dict_for_graph():
     for row in rows:
         user_id = row[0]
         if  user_id not in users:
-            users.update({user_id:[item[1] for item in rows if user_id == item[0]]})
+            users.update({user_id:set([item[1] for item in rows if user_id == item[0]])})
     return users
 
 def get_graph(users):

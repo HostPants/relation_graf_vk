@@ -10,8 +10,8 @@ class Test(unittest.TestCase):
         self.assertEqual(res['response']['count'],len(users))
 
     def test_get_friends(self):
-        users = tools.get_items(tools.vk_request('users.search', f'age_from=21&age_to=22&university=1088'))
-        friends = tools.get_friends(users)
+        users = t.get_items(t.vk_request('users.search', f'age_from=21&age_to=22&university=1088'))
+        friends = t.get_friends(users)
         self.assertIsNotNone(friends)
 
     def test_friends_write_to_db(self):

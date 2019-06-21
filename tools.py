@@ -4,7 +4,7 @@ import networkx as nx
 import psycopg2
 from datetime import datetime
 import matplotlib.pyplot as plt
-from my_token import token
+from my_token1 import token
 
 
 def vk_request(method,params):
@@ -66,11 +66,11 @@ def get_friends(users):
 
 def get_coonnect():
     conn = psycopg2.connect(
-        host='localhost',
+        host='109.194.141.162',
         port='5432',
-        database='vk_graf',
-        user='vk',
-        password='pass100word')
+        database='postgres',
+        user='******',
+        password='******')
     return conn
 
 def users_is_empty():
@@ -96,7 +96,7 @@ def write_users_to_db(users):
             values += f" ('{id}', '{transform_name(first_name)}', '{transform_name(last_name)}'),"
             ids.add(id)
             if len(ids) % 1000 == 0 or len(ids) == len(users):
-                cursor.execute('insert into users ' + values[:-1])
+                cursor.execute('insert into users(id, first_name, last_name) ' + values[:-1])
                 values='values'
     conn.commit()
     cursor.close()
@@ -142,6 +142,6 @@ def get_graph(users):
     return nx.from_dict_of_lists(users)
 
 def drow_graph(graph):
-    plt.figure(figsize=(10,10), dpi=200 )
+    plt.figure(figsize=(30,30), dpi=200 )
     nx.draw(graph, node_size=5)
     plt.savefig("%s graph.png" % datetime.now().strftime('%H:%M:%S %d-%m-%Y'))
